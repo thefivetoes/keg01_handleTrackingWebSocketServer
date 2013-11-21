@@ -1,0 +1,17 @@
+html {
+	padding:20px;
+	font-family:Verdana;
+}
+
+#container {
+	width:1000px;
+	height: 800px;
+}
+
+#beer-pic {
+  display: none;
+}
+
+#beer-pic.active {
+  display: block;
+}
