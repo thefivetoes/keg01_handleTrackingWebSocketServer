@@ -78,6 +78,7 @@ void testApp::updateAppMode(){
     
     unsigned char * sourcePix = vidGrabber.getPixels();
     img.setFromPixels( sourcePix, camWidth, camHeight, OF_IMAGE_COLOR);
+    img.crop(rect.x, rect.y, rect.width, rect.height);
     
     switch (trackingMode){
         case TRACKING_MODE_RGB:
@@ -96,7 +97,8 @@ void testApp::updateAppMode(){
     img.setFromPixels(sourcePix, camWidth, camHeight, OF_IMAGE_COLOR);
     //img.crop(rect.x, rect.y, rect.width, rect.height);
     ofxCvColorImage colorImage = ofxCvColorImage();
-    colorImage.setFromPixels( img.getPixels(), img.width, img.height );
+    //colorImage.setFromPixels( img.getPixels(), img.width, img.height );
+    colorImage.setFromPixels( img.getPixels(), rect.width, rect.height );
     grayImage.setFromColorImage( colorImage );
     //grayImage.setFromPixels(vidGrabber.getPixels(), camWidth, camHeight);
   
@@ -127,10 +129,15 @@ void testApp::updateAppMode(){
     // find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
     // also, find holes is set to true so we will get interior contours as well....
     //contourFinder.findContours(grayImage, 10, (1024*768)/2, 20, false);
-    contourFinder.findContours(grayImage, 2000, 4000, 1, false);
+    contourFinder.findContours(grayImage, 100, 2000, 1, false);
     
     ofPoint pt = contourFinder.blobs[0].centroid;
-    if( pt.y > rect.y+rect.height/2 )
+    pt.x += rect.x;
+    pt.y += rect.y;
+    if(contourFinder.blobs.size() == 0){
+        kegIsPouring = false;
+    }
+    else if( pt.y > rect.y+rect.height/2 )
     {
         kegIsPouring = false;
     }
@@ -222,35 +229,39 @@ void testApp::drawAppMode(){
     ofSetColor(255, 255, 255);
     
     if(nearMode  == 0 ){
-        grayThreshLight.draw(40,70, camWidth, camHeight);
+        //grayThreshLight.draw(40,70, camWidth, camHeight);
+        grayThreshLight.draw(40+rect.x,70+rect.y, rect.width, rect.height);
         stringstream threshMode;
         threshMode << "Showing Light Threshold";
         ofDrawBitmapString(threshMode.str(), 20, 800);
     }
     else if( nearMode == 1){
-        grayThreshDark.draw(40,70, camWidth, camHeight);
+        //grayThreshDark.draw(40,70, camWidth, camHeight);
+        grayThreshDark.draw(40+rect.x,70+rect.y, rect.width, rect.height);
         stringstream threshMode;
         threshMode << "Showing Dark Threshold";
         ofDrawBitmapString(threshMode.str(), 20, 800);
     }
     else {
-        grayImage.draw(40,70, camWidth, camHeight);
+        //grayImage.draw(40,70, camWidth, camHeight);
+        grayImage.draw(40+rect.x,70+rect.y, rect.width, rect.height);
         stringstream threshMode;
         threshMode << "Showing Combined Thresholds";
         ofDrawBitmapString(threshMode.str(), 20, 800);
     }
     //grayImage.draw(40,70, camWidth, camHeight);
-    contourFinder.draw(40,70, camWidth, camHeight);
+    //contourFinder.draw(40,70, camWidth, camHeight);
+    contourFinder.draw(40+rect.x,70+rect.y, rect.width, rect.height);
     vector<ofxCvBlob> blobs = contourFinder.blobs;
     for( int i = 0; i < blobs.size(); i ++ ){
         ofSetColor(255, 0, 0);
         ofxCvBlob blob = blobs[i];
-        ofCircle( blob.centroid.x+40, blob.centroid.y+70, 5);
+        ofCircle( blob.centroid.x+40+rect.x, blob.centroid.y+70+rect.y, 5);
         
         ofSetColor(255, 128, 0);
         stringstream label;
         label << blob.area;
-        ofDrawBitmapString(label.str(), blob.centroid.x+40+10, blob.centroid.y+10);
+        ofDrawBitmapString(label.str(), blob.centroid.x+40+10+rect.x, blob.centroid.y+10+rect.y);
     }
 
     stringstream tresholdStream;
@@ -376,6 +387,16 @@ void testApp::mousePressed(int x, int y, int button){
 void testApp::mouseReleased(int x, int y, int button){
     rect.width = x - rect.x-40;
     rect.height = y - rect.y-70;
+    
+    grayImage.clear();
+    grayThreshLight.clear();
+	grayThreshDark.clear();
+
+    
+    grayImage.allocate(rect.width,rect.height);
+    grayThreshLight.allocate(rect.width,rect.height);
+	grayThreshDark.allocate(rect.width,rect.height);
+
     
 }
 
