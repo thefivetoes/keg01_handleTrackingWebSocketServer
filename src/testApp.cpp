@@ -6,7 +6,7 @@ void testApp::setup(){
     //server.setup();
     
     viewMode = VIEW_MODE_SETUP;
-    trackingMode = TRACKING_MODE_RGB;
+    trackingMode = TRACKING_MODE_BLUE;
     
     camWidth 		= 853;	// try to grab at this size.
 	camHeight 		= 480;
@@ -33,7 +33,7 @@ void testApp::setup(){
 	grayThreshDark.allocate(camWidth,camHeight);
     
     bThreshWithOpenCV = true;
-    lightThreshold = 150;
+    lightThreshold = 204;
 	darkThreshold = 50;
     
 	ofSetVerticalSync(true);
@@ -228,7 +228,10 @@ void testApp::drawAppMode(){
     
     ofSetColor(255, 255, 255);
     
+    vidGrabber.draw(40,70,camWidth,camHeight);
+    
     if(nearMode  == 0 ){
+        //disabled full frame monitoring below
         //grayThreshLight.draw(40,70, camWidth, camHeight);
         grayThreshLight.draw(40+rect.x,70+rect.y, rect.width, rect.height);
         stringstream threshMode;
@@ -236,6 +239,7 @@ void testApp::drawAppMode(){
         ofDrawBitmapString(threshMode.str(), 20, 800);
     }
     else if( nearMode == 1){
+        //disabled full frame monitoring below
         //grayThreshDark.draw(40,70, camWidth, camHeight);
         grayThreshDark.draw(40+rect.x,70+rect.y, rect.width, rect.height);
         stringstream threshMode;
@@ -243,15 +247,18 @@ void testApp::drawAppMode(){
         ofDrawBitmapString(threshMode.str(), 20, 800);
     }
     else {
+        //disabled full frame monitoring below
         //grayImage.draw(40,70, camWidth, camHeight);
         grayImage.draw(40+rect.x,70+rect.y, rect.width, rect.height);
         stringstream threshMode;
         threshMode << "Showing Combined Thresholds";
         ofDrawBitmapString(threshMode.str(), 20, 800);
     }
-    //grayImage.draw(40,70, camWidth, camHeight);
+    
+    //disabled full frame monitoring below
     //contourFinder.draw(40,70, camWidth, camHeight);
     contourFinder.draw(40+rect.x,70+rect.y, rect.width, rect.height);
+    
     vector<ofxCvBlob> blobs = contourFinder.blobs;
     for( int i = 0; i < blobs.size(); i ++ ){
         ofSetColor(255, 0, 0);
@@ -272,9 +279,10 @@ void testApp::drawAppMode(){
     ofSetColor(255,255,255);
     
     stringstream title;
-    title << "SETUP MODE" <<  endl;
+    title << "APP MODE" <<  endl;
     title <<  "Frame Rate: " << ofToString(ofGetFrameRate(), 2);
     title << "Found Blobs: " << contourFinder.nBlobs << endl;
+    
     if(kegIsPouring){
         title << "Keg Is Pouring" <<endl;
     }
@@ -283,13 +291,13 @@ void testApp::drawAppMode(){
     }
         
 	ofDrawBitmapStringHighlight(title.str(), 20, 20);
-
 }
 
 ofImage testApp::getRedImage( ofImage img ){
     
     //clear out green
     img.getPixelsRef().setChannel( 1, img.getPixelsRef().getChannel(0) );
+    
     //clear out blue
     img.getPixelsRef().setChannel( 2, img.getPixelsRef().getChannel(0) );
     
@@ -300,6 +308,7 @@ ofImage testApp::getGreenImage( ofImage img ){
     
     //clear out red
     img.getPixelsRef().setChannel( 0, img.getPixelsRef().getChannel(1) );
+    
     //clear out blue
     img.getPixelsRef().setChannel( 2, img.getPixelsRef().getChannel(1) );
     
@@ -310,6 +319,7 @@ ofImage testApp::getBlueImage( ofImage img ){
     
     //clear out red
     img.getPixelsRef().setChannel( 0, img.getPixelsRef().getChannel(2) );
+    
     //clear out green
     img.getPixelsRef().setChannel( 1, img.getPixelsRef().getChannel(2) );
     
@@ -354,10 +364,6 @@ void testApp::keyPressed(int key){
 			darkThreshold ++;
 			break;
     }
-//    if(lightThreshold > 255) lightThreshold = 255;
-//    if(lightThreshold < darkThreshold) lightThreshold = darkThreshold;
-//    if(darkThreshold < 0) darkThreshold = 0;
-//    if(darkThreshold > lightThreshold) darkThreshold = lightThreshold;
 }
 
 //--------------------------------------------------------------
@@ -388,16 +394,14 @@ void testApp::mouseReleased(int x, int y, int button){
     rect.width = x - rect.x-40;
     rect.height = y - rect.y-70;
     
+    //reset threshold images
     grayImage.clear();
     grayThreshLight.clear();
 	grayThreshDark.clear();
 
-    
     grayImage.allocate(rect.width,rect.height);
     grayThreshLight.allocate(rect.width,rect.height);
 	grayThreshDark.allocate(rect.width,rect.height);
-
-    
 }
 
 //--------------------------------------------------------------
